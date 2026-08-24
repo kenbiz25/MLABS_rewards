@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // Switch to Postgres for production: provider = "postgresql"
+  // and set DATABASE_URL to a postgres:// connection string.
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Cycle {
+  id                 String        @id @default(cuid())
+  name               String
+  status             String        @default("DRAFT") // DRAFT | OPEN | CLOSED
+  opensAt            DateTime?
+  closesAt           DateTime?
+  resultsPublishedAt DateTime?
+  createdAt          DateTime      @default(now())
+  nominations        Nomination[]
+  winners            CycleWinner[]
+
+  @@index([status])
+}
+
+model CycleWinner {
+  id          String   @id @default(cuid())
+  cycleId     String
+  cycle       Cycle    @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  nomineeName String
+  trait       String // one of the four Core Trait keys — see lib/traits.ts
+  createdAt   DateTime @default(now())
+
+  @@unique([cycleId, trait])
+  @@index([cycleId])
+}
+
+model Nomination {
+  id             String   @id @default(cuid())
+  cycleId        String
+  cycle          Cycle    @relation(fields: [cycleId], references: [id])
+  nomineeName    String
+  countryCode    String
+  countryName    String
+  traits         String // JSON array, e.g. ["PUT_PATIENTS_FIRST"]
+  momentText     String
+  impactText     String
+  nominatorName  String
+  nominatorEmail String
+  createdAt      DateTime @default(now())
+
+  @@unique([cycleId, nominatorEmail])
+  @@index([countryCode])
+  @@index([createdAt])
+  @@index([cycleId])
+}
+
+// Every account — admin or employee — is a User. isAdmin decides whether
+// logging in lands on the admin dashboard or the personal employee page.
+// There is no separate signup flow for "admin": an admin either seeds in
+// (see prisma/seed.ts) or is promoted from an existing employee account by
+// another admin via /admin/team.
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  isAdmin      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
