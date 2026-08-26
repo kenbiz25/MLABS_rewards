@@ -6,70 +6,81 @@ giving HR/LT full visibility into submissions, trends, and results.
 
 ## Stack
 
-Next.js 14 (App Router) + TypeScript, Tailwind CSS, Prisma + SQLite, Zod, bcryptjs,
-nodemailer (password-reset email), lucide-react. No chart library or component kit —
-dashboards and charts are hand-built with Tailwind.
+Next.js 14 (App Router) + TypeScript, Tailwind CSS, Prisma + SQLite, Zod, lucide-react.
+No chart library or component kit — dashboards and charts are hand-built with Tailwind.
+Sign-in is Microsoft (Entra ID) OAuth only — no local passwords, no SSO library; the
+authorization code + PKCE flow is implemented directly against the Microsoft identity
+platform (see `lib/microsoftOAuth.ts` and `app/api/auth/microsoft/`).
 
 ## Getting started
 
 ```bash
 npm install
-cp .env.example .env
+cp .env.example .env   # then fill in AZURE_AD_CLIENT_ID / AZURE_AD_CLIENT_SECRET (see below)
 npm run db:push
 npm run db:seed
 npm run dev
 ```
 
-Visit `http://localhost:3000` to nominate, or `http://localhost:3000/login` to sign in.
+Visit `http://localhost:3000` to nominate, or `http://localhost:3000/login` to sign in
+with Microsoft.
 
-**Seeded logins** (from the default `.env.example`, password `ChangeMe123!` for all):
+**Seeded accounts** (sign in with the matching Microsoft account for each email):
 
-- Admin: `catherine.muthoni@medtroniclabs.org` — lands on the admin dashboard.
+- Admin: `catherine.muthoni@medtroniclabs.org` (or whatever you set `ADMIN_EMAIL` to)
+  — lands on the admin dashboard.
 - Employee (has nomination history to browse): `wanjiru.kamau@medtroniclabs.org`,
   `david.mensah@medtroniclabs.org`, or `priya.nair@medtroniclabs.org` — lands on `/me`.
+
+If you don't control real Microsoft accounts for those addresses in development, sign
+in with any Microsoft account you do control, then promote it to admin from
+`/admin/team` (the first account ever created has no admin — see below).
 
 The seed also creates four financial-year cycles (FY27 Q1–Q4, the current one open)
 with ~37 realistic nominations across the 7 participating countries and all four Core
 Traits, plus a not-yet-activated FY28 Q1 cycle and a mix of published/unpublished
 cycle winners — enough to demo the dashboard, PDF export, and results tab convincingly.
 
+## Microsoft sign-in setup
+
+The app needs an app registration in [Entra ID](https://entra.microsoft.com) (Azure
+AD) to authenticate against:
+
+1. In the Entra admin center, go to **App registrations → New registration**.
+2. Name it (e.g. "Core Traits & Recognition Awards"), and under **Supported account
+   types** pick the option matching who should be able to sign in (this app defaults
+   to "Accounts in any organizational directory and personal Microsoft accounts").
+3. Under **Redirect URI**, add a **Web** platform redirect URI:
+   `http://localhost:3000/api/auth/microsoft/callback` for local dev, plus your
+   production URL's equivalent (e.g. `https://awards.medtroniclabs.org/api/auth/microsoft/callback`).
+4. After creating it, copy the **Application (client) ID** into `AZURE_AD_CLIENT_ID`.
+5. Go to **Certificates & secrets → New client secret**, create one, and copy its
+   **value** (not the secret ID) into `AZURE_AD_CLIENT_SECRET` immediately — it's only
+   shown once.
+6. Under **API permissions**, confirm `User.Read` (Microsoft Graph, delegated) is
+   present — it's added by default and is all this app needs.
+7. To restrict sign-in to one organization's tenant instead of any Microsoft account,
+   set `AZURE_AD_TENANT_ID` to that tenant's ID (found on the app registration's
+   **Overview** page) instead of the default `"common"`.
+
 ## Accounts and access
 
-There's one unified login (`/login`) for everyone — no separate admin sign-in page:
+There's one unified login (`/login`) for everyone — no separate admin sign-in page,
+and no local password to manage:
 
-- **Employees** self-register (name, work email, password — no SSO/OAuth) and, once
-  signed in, land on `/me`: their own nomination history, plus a **Results** tab
-  showing winners for any cycle an admin has published.
-- **Admins** are either seeded (see below) or promoted from an existing employee
-  account by another admin, from `/admin/team`. Signing in as an admin lands on the
-  admin dashboard, which also has a "View as employee" link back to `/me` — the same
-  account can nominate and browse its own history like anyone else.
+- **Everyone signs in with Microsoft**. A user's account is auto-provisioned on their
+  first sign-in (matched by the email Microsoft returns) and, once signed in, lands
+  on `/me`: their own nomination history, plus a **Results** tab showing winners for
+  any cycle an admin has published.
+- **Admins** are either seeded (`ADMIN_EMAIL` in `.env`, upserted by `npm run
+  db:seed`) or promoted from an existing account by another admin, from
+  `/admin/team` — which can also pre-provision an email as admin before that
+  person's first sign-in. Signing in as an admin lands on the admin dashboard, which
+  also has a "View as employee" link back to `/me` — the same account can nominate
+  and browse its own history like anyone else.
 - **Nominating without an account** still works: the public form falls back to a
   lightweight one-time name + work-email gate if there's no session. Signing in isn't
   required to submit a nomination, just to see your history afterward.
-- **Forgot password**: `/forgot-password` → emails a one-hour reset link (or logs it
-  to the server console in development — see SMTP setup below) → `/reset-password`.
-  Resetting a password signs that account out everywhere.
-
-## Generating an admin password hash
-
-`ADMIN_EMAIL` / `ADMIN_PASSWORD_HASH` in `.env` control the one account the seed
-script always upserts as an admin. To set a real password:
-
-```bash
-npm run hash -- "your-password"
-```
-
-Paste the output into `ADMIN_PASSWORD_HASH`, then re-run `npm run db:seed` (safe to
-re-run — it upserts). To grant admin access to anyone else afterward, use
-`/admin/team` instead of environment variables.
-
-## SMTP (password-reset emails)
-
-Set `SMTP_HOST` (plus `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`) in `.env` to
-send real reset emails via any SMTP provider (Microsoft 365, Gmail, etc.). Leave
-`SMTP_HOST` unset in development — reset links are logged to the server console
-instead, so the flow is fully testable without real credentials.
 
 ## How nominations work
 
@@ -153,9 +164,9 @@ clauses if you want the same case-insensitive behavior.
 ## Data portability
 
 All data lives in a normal relational schema (`User`, `Cycle`, `CycleWinner`,
-`Nomination`, `Session`, `PasswordResetToken` — see `prisma/schema.prisma`) and is
-always exportable as CSV via the dashboard, so it can be migrated back into Perceptyx
-or any other tool later without lock-in.
+`Nomination`, `Session` — see `prisma/schema.prisma`) and is always exportable as CSV
+via the dashboard, so it can be migrated back into Perceptyx or any other tool later
+without lock-in.
 
 ## Deploying to Vercel
 
@@ -163,25 +174,24 @@ or any other tool later without lock-in.
 2. Provision a Postgres database (Vercel Postgres, Neon, Supabase, etc.) and switch the
    Prisma datasource as above.
 3. Set the environment variables from `.env.example` in the Vercel project settings
-   (`DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, `APP_URL`,
-   and the `SMTP_*` variables if you want real reset emails).
-4. Add `npx prisma generate` to the build command if it isn't picked up automatically,
+   (`DATABASE_URL`, `ADMIN_EMAIL`, `SESSION_SECRET`, `APP_URL`, `AZURE_AD_CLIENT_ID`,
+   `AZURE_AD_CLIENT_SECRET`, `AZURE_AD_TENANT_ID`).
+4. Add the production redirect URI (`https://<your-domain>/api/auth/microsoft/callback`)
+   to the app registration in Entra ID — see "Microsoft sign-in setup" above.
+5. Add `npx prisma generate` to the build command if it isn't picked up automatically,
    and run `npx prisma db push` once against the production database before first use.
 
 ## Known limitations
 
-- Rate limiting (login, signup, nomination submissions, password-reset requests) is
-  in-memory and per-instance — fine for a single-server deployment, but swap for a
-  shared store (e.g. Redis) if you scale to multiple instances.
-- The forgot-password flow needs `SMTP_*` configured to send real email; without it,
-  reset links only appear in the server console (development-safe, not production-safe).
+- Rate limiting (nomination submissions, admin actions) is in-memory and
+  per-instance — fine for a single-server deployment, but swap for a shared store
+  (e.g. Redis) if you scale to multiple instances.
 
 ## Project structure
 
 ```
-app/                  Routes (App Router): public form, login/signup, /me, admin, API handlers
+app/                  Routes (App Router): public form, login (Microsoft sign-in), /me, admin, API handlers
 components/           UI components (nomination flow, employee home, admin dashboard, auth)
-lib/                  Shared schemas, trait/country data, auth, scheduling, email, CSV, word matching
+lib/                  Shared schemas, trait/country data, auth, Microsoft OAuth, scheduling, CSV, word matching
 prisma/               Schema and seed script
-scripts/              One-off CLI utilities (password hashing)
 ```

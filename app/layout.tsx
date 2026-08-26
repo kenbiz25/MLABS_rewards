@@ -10,9 +10,23 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.APP_URL || "https://awards.medtroniclabs.org"),
   title: "Core Traits & Recognition Awards | Medtronic LABS",
   description:
     "Nominate a colleague who brings Medtronic LABS' Core Traits to life.",
+  openGraph: {
+    title: "Core Traits & Recognition Awards | Medtronic LABS",
+    description:
+      "Nominate a colleague who brings Medtronic LABS' Core Traits to life.",
+    images: ["/icon.png"],
+  },
+  twitter: {
+    card: "summary",
+    title: "Core Traits & Recognition Awards | Medtronic LABS",
+    description:
+      "Nominate a colleague who brings Medtronic LABS' Core Traits to life.",
+    images: ["/icon.png"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

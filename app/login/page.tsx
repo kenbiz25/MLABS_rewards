@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AlertCircle } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { Logomark, LogoLockup } from "@/components/Logomark";
-import { LoginForm } from "@/components/admin/LoginForm";
+import { MicrosoftSignInButton } from "@/components/auth/MicrosoftSignInButton";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
   const user = await getCurrentUser();
   if (user) redirect(user.isAdmin ? "/admin/nominations" : "/me");
 
@@ -21,7 +26,13 @@ export default async function LoginPage() {
             results. HR team members also manage nominations from here.
           </p>
           <div className="mt-8">
-            <LoginForm />
+            {searchParams.error && (
+              <div className="mb-5 flex items-start gap-2 rounded-xl bg-[#FDEDED] px-4 py-3 text-sm text-deep-red">
+                <AlertCircle size={18} strokeWidth={1.75} className="mt-0.5 shrink-0" />
+                <span>{searchParams.error}</span>
+              </div>
+            )}
+            <MicrosoftSignInButton />
           </div>
         </div>
       </div>

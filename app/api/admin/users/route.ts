@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { getCurrentAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { createUserSchema } from "@/lib/schemas";
@@ -14,8 +13,10 @@ export async function GET() {
   });
 }
 
-// Lets an admin create an account directly (e.g. a new admin who hasn't
-// signed up as an employee yet) rather than only promoting existing users.
+// Lets an admin pre-provision an account directly (e.g. a new admin who
+// hasn't signed in with Microsoft yet) rather than only promoting existing
+// users. The account still authenticates via Microsoft SSO - this just
+// reserves the email and role ahead of that first sign-in.
 export async function POST(req: NextRequest) {
   const admin = await getCurrentAdmin();
   if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -33,12 +34,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "That email is already registered." }, { status: 409 });
   }
 
-  const passwordHash = await bcrypt.hash(parsed.data.password, 10);
   const user = await prisma.user.create({
     data: {
       name: parsed.data.name,
       email: parsed.data.email,
-      passwordHash,
       isAdmin: parsed.data.isAdmin ?? false,
     },
   });

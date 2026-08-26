@@ -17,7 +17,6 @@ export function AdminUserManager() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isAdmin, setIsAdmin] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -41,7 +40,7 @@ export function AdminUserManager() {
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, isAdmin }),
+        body: JSON.stringify({ name, email, isAdmin }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -50,7 +49,6 @@ export function AdminUserManager() {
       }
       setName("");
       setEmail("");
-      setPassword("");
       load();
     } finally {
       setCreating(false);
@@ -72,15 +70,15 @@ export function AdminUserManager() {
         <p className="text-xs font-medium uppercase tracking-[0.1em] text-ink-faint">HR Team</p>
         <h1 className="mt-2 text-4xl font-medium text-ink">Team access</h1>
         <p className="mt-2 max-w-2xl text-[15px] text-ink-body">
-          Grant or remove admin access for any account. Employees create their
-          own account by signing up - you only need this form to add someone
-          who doesn't have an account yet.
+          Grant or remove admin access for any account. Everyone signs in
+          with Microsoft - you only need this form to reserve admin access
+          for someone before their first sign-in.
         </p>
       </div>
 
       <form
         onSubmit={handleCreate}
-        className="grid grid-cols-1 gap-4 rounded-card border border-border bg-white p-7 shadow-card sm:grid-cols-[1fr_1.2fr_1fr_auto_auto]"
+        className="grid grid-cols-1 gap-4 rounded-card border border-border bg-white p-7 shadow-card sm:grid-cols-[1fr_1.2fr_auto_auto]"
       >
         <input
           type="text"
@@ -96,13 +94,6 @@ export function AdminUserManager() {
           onChange={(e) => setEmail(e.target.value)}
           className="h-11 rounded-input border-[1.5px] border-border-strong px-3.5 text-[15px] text-ink outline-none focus:border-indigo"
         />
-        <input
-          type="password"
-          placeholder="Temporary password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="h-11 rounded-input border-[1.5px] border-border-strong px-3.5 text-[15px] text-ink outline-none focus:border-indigo"
-        />
         <label className="flex items-center gap-2 text-sm text-ink-body">
           <input type="checkbox" checked={isAdmin} onChange={(e) => setIsAdmin(e.target.checked)} />
           Admin
@@ -115,7 +106,7 @@ export function AdminUserManager() {
           <UserPlus size={16} strokeWidth={2} />
           Add
         </button>
-        {error && <p className="text-sm text-deep-red sm:col-span-5">{error}</p>}
+        {error && <p className="text-sm text-deep-red sm:col-span-4">{error}</p>}
       </form>
 
       <div className="overflow-hidden rounded-card border border-border bg-white shadow-card-lg">

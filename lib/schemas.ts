@@ -59,25 +59,12 @@ export const nominationSchema = z.object({
 
 export type NominationInput = z.infer<typeof nominationSchema>;
 
-export const loginSchema = z.object({
-  email: z.string().trim().toLowerCase().email("Enter a valid email."),
-  password: z.string().min(1, "Enter your password."),
-});
-
-export type LoginInput = z.infer<typeof loginSchema>;
-
-export const signupSchema = z.object({
-  name: z.string().trim().min(2, "Enter your full name.").max(120),
-  email: z.string().trim().toLowerCase().email("Enter a valid work email."),
-  password: z.string().min(8, "Use at least 8 characters."),
-});
-
-export type SignupInput = z.infer<typeof signupSchema>;
-
+// Lets an admin pre-provision an account (e.g. a new admin who hasn't
+// signed in with Microsoft yet) ahead of their first sign-in. No password —
+// the account authenticates via Microsoft SSO, matched by email.
 export const createUserSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().toLowerCase().email("Enter a valid email."),
-  password: z.string().min(8, "Use at least 8 characters."),
   isAdmin: z.boolean().optional(),
 });
 
@@ -88,19 +75,6 @@ export const updateUserRoleSchema = z.object({
 });
 
 export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
-
-export const forgotPasswordSchema = z.object({
-  email: z.string().trim().toLowerCase().email("Enter a valid email."),
-});
-
-export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
-
-export const resetPasswordSchema = z.object({
-  token: z.string().min(1),
-  password: z.string().min(8, "Use at least 8 characters."),
-});
-
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 const dateStringSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a valid date.");
 

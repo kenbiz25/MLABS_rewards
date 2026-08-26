@@ -1,11 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
 import { countryNameFor } from "../lib/countries";
 import { computeGlobalWindow } from "../lib/schedule";
 
 const prisma = new PrismaClient();
-
-const DEV_PASSWORD = "ChangeMe123!";
 
 // Participating countries only: Kenya, Ghana, Rwanda, Sierra Leone,
 // Bangladesh, Bhutan, United States.
@@ -135,33 +132,30 @@ function isoDateOffset(days: number): string {
 }
 
 async function seedUsers() {
+  // Everyone authenticates via Microsoft sign-in (see
+  // app/api/auth/microsoft/callback/route.ts) - there's no password to seed.
+  // This just pre-provisions the admin's email with isAdmin: true so their
+  // first Microsoft sign-in lands on the admin dashboard.
   const adminEmail = (process.env.ADMIN_EMAIL ?? "catherine.muthoni@medtroniclabs.org").toLowerCase();
-  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH ?? (await bcrypt.hash(DEV_PASSWORD, 10));
 
   await prisma.user.upsert({
     where: { email: adminEmail },
-    update: { passwordHash: adminPasswordHash, isAdmin: true, name: "Catherine Muthoni" },
-    create: { name: "Catherine Muthoni", email: adminEmail, passwordHash: adminPasswordHash, isAdmin: true },
+    update: { isAdmin: true, name: "Catherine Muthoni" },
+    create: { name: "Catherine Muthoni", email: adminEmail, isAdmin: true },
   });
-  console.log(`Seeded admin user: ${adminEmail}`);
-  console.log(
-    process.env.ADMIN_PASSWORD_HASH
-      ? "Password matches your ADMIN_PASSWORD_HASH in .env."
-      : `No ADMIN_PASSWORD_HASH set — using dev default password: ${DEV_PASSWORD}`
-  );
+  console.log(`Seeded admin user: ${adminEmail} (signs in with Microsoft)`);
 
   // A few employee accounts so the "sign in as an employee" experience has
   // real nomination history to show right away.
-  const employeePasswordHash = await bcrypt.hash(DEV_PASSWORD, 10);
   for (const nominator of NOMINATORS.slice(0, 3)) {
     await prisma.user.upsert({
       where: { email: nominator.email },
-      update: { name: nominator.name, passwordHash: employeePasswordHash },
-      create: { name: nominator.name, email: nominator.email, passwordHash: employeePasswordHash, isAdmin: false },
+      update: { name: nominator.name },
+      create: { name: nominator.name, email: nominator.email, isAdmin: false },
     });
   }
   console.log(
-    `Seeded ${NOMINATORS.slice(0, 3).length} demo employee accounts (password: ${DEV_PASSWORD}), e.g. ${NOMINATORS[0].email}`
+    `Seeded ${NOMINATORS.slice(0, 3).length} demo employee accounts (sign in with Microsoft), e.g. ${NOMINATORS[0].email}`
   );
 }
 
