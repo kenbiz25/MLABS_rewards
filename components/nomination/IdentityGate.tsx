@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { identitySchema } from "@/lib/schemas";
+import { CountdownTimer } from "./CountdownTimer";
 
 interface IdentityGateProps {
   cycleName: string;
@@ -46,6 +47,11 @@ export function IdentityGate({ cycleName, closesAt, onContinue, initialValues }:
         {cycleName}
         {closesAt ? ` · closes ${format(new Date(closesAt), "d MMMM yyyy")}` : ""}
       </p>
+      {closesAt && (
+        <p className="mt-1 text-xs font-medium text-indigo">
+          <CountdownTimer closesAt={closesAt} />
+        </p>
+      )}
       <h2 className="mt-3 text-2xl font-medium text-ink">Before you begin</h2>
       <p className="mt-2 text-[15px] leading-relaxed text-ink-body">
         Tell us who you are so we can confirm this nomination. You can submit
