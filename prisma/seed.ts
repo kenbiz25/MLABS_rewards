@@ -24,7 +24,7 @@ async function main() {
   await prisma.nomination.deleteMany();
   await prisma.cycle.deleteMany();
 
-  console.log("No demo cycles or nominations seeded — clean production database.");
+  console.log("No demo cycles or nominations seeded - clean production database.");
 }
 
 main()

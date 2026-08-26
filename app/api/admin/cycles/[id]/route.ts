@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { cycleUpdateSchema } from "@/lib/schemas";
 import { computeGlobalWindow, DEFAULT_WINDOW_DAYS } from "@/lib/schedule";
 
-// Cycles are managed independently — activating, closing, or rescheduling
+// Cycles are managed independently - activating, closing, or rescheduling
 // one has no effect on any other cycle. Several cycles (e.g. a closed
 // quarter and an upcoming one) can be scheduled or live at once.
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {

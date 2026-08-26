@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import type { TraitKey } from "@/lib/traits";
 
-// Scoped to the signed-in account's own email — never the moment/impact
+// Scoped to the signed-in account's own email - never the moment/impact
 // text of anyone else's submissions, and never reachable without a session.
 export async function GET() {
   const user = await getCurrentUser();

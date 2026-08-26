@@ -60,7 +60,7 @@ export const nominationSchema = z.object({
 export type NominationInput = z.infer<typeof nominationSchema>;
 
 // Lets an admin pre-provision an account (e.g. a new admin who hasn't
-// signed in with Microsoft yet) ahead of their first sign-in. No password —
+// signed in with Microsoft yet) ahead of their first sign-in. No password -
 // the account authenticates via Microsoft SSO, matched by email.
 export const createUserSchema = z.object({
   name: z.string().trim().min(2).max(120),

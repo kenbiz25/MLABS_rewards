@@ -5,7 +5,7 @@ import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from "@/lib/auth";
 // verified server-side by getCurrentUser()/getCurrentAdmin() inside each
 // protected page/route, since Prisma/SQLite access isn't available in the
 // Edge runtime middleware executes in. This just gates on cookie presence,
-// and — since it runs on nearly every request — also keeps the cookie's own
+// and - since it runs on nearly every request - also keeps the cookie's own
 // Max-Age sliding forward so an active signed-in user is never logged out
 // mid-use, even though the cookie's expiry is fixed at set-time otherwise.
 const PROTECTED_PAGE_PREFIXES = ["/admin/nominations", "/admin/cycles", "/admin/team", "/me"];

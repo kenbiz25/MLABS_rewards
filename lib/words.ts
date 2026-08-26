@@ -1,8 +1,8 @@
 // "Recurring words" surfaces concepts connected to Medtronic LABS' Core
-// Traits and adjacent organizational values — not incidental nouns, verbs,
+// Traits and adjacent organizational values - not incidental nouns, verbs,
 // or dates that happen to appear in a specific anecdote. Rather than a raw
 // stopword-filtered frequency count (which surfaces whatever words a
-// submission happened to use — "clinic", "data", "days", "temporary"), we
+// submission happened to use - "clinic", "data", "days", "temporary"), we
 // match against a curated set of value concepts and count how often each
 // one appears, rolling word variants (collaborate/collaboration/
 // collaborative) up under one label.

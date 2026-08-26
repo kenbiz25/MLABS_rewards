@@ -4,7 +4,7 @@ interface LogomarkProps {
 }
 
 // The multi-color Medtronic LABS icon (public/brand-icon.png). Full-color,
-// so it reads fine on both white and solid-indigo backgrounds — there is no
+// so it reads fine on both white and solid-indigo backgrounds - there is no
 // separate "white" variant.
 export function Logomark({ size = 32, className }: LogomarkProps) {
   return (

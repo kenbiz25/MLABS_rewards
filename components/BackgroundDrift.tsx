@@ -12,7 +12,7 @@ interface Sprite {
   size: number;
 }
 
-// Ambient background texture — the brand icon drifting faintly, matching
+// Ambient background texture - the brand icon drifting faintly, matching
 // the treatment used on the sign-in page.
 const CONFIGS = [
   { size: 260, speed: 0.15 },

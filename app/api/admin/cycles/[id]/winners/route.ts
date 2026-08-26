@@ -16,7 +16,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   return NextResponse.json({ winners });
 }
 
-// One winner per Core Trait category per cycle — the unique constraint on
+// One winner per Core Trait category per cycle - the unique constraint on
 // [cycleId, trait] is the source of truth for that.
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const admin = await getCurrentAdmin();

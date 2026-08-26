@@ -28,7 +28,7 @@ model CycleWinner {
   cycleId     String
   cycle       Cycle    @relation(fields: [cycleId], references: [id], onDelete: Cascade)
   nomineeName String
-  trait       String // one of the four Core Trait keys — see lib/traits.ts
+  trait       String // one of the four Core Trait keys - see lib/traits.ts
   createdAt   DateTime @default(now())
 
   @@unique([cycleId, trait])
@@ -55,7 +55,7 @@ model Nomination {
   @@index([cycleId])
 }
 
-// Every account — admin or employee — is a User, authenticated via
+// Every account - admin or employee - is a User, authenticated via
 // Microsoft sign-in (no local password). isAdmin decides whether signing in
 // lands on the admin dashboard or the personal employee page. There is no
 // separate signup flow for "admin": an admin either seeds in (see
