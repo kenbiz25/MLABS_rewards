@@ -6,6 +6,6 @@ export async function GET() {
   if (!user) return NextResponse.json({ user: null });
 
   return NextResponse.json({
-    user: { name: user.name, email: user.email, isAdmin: user.isAdmin },
+    user: { id: user.id, name: user.name, email: user.email, isAdmin: user.isAdmin },
   });
 }

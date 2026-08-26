@@ -20,6 +20,8 @@ export function AdminUserManager() {
   const [isAdmin, setIsAdmin] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
 
   function load() {
     fetch("/api/admin/users")
@@ -30,7 +32,13 @@ export function AdminUserManager() {
       });
   }
 
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => setCurrentUserId(data.user?.id ?? null))
+      .catch(() => undefined);
+  }, []);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -62,6 +70,19 @@ export function AdminUserManager() {
       body: JSON.stringify({ isAdmin: !user.isAdmin }),
     });
     if (res.ok) load();
+  }
+
+  async function deleteUser(user: TeamUser) {
+    setRowError(null);
+    if (!window.confirm(`Delete ${user.name}'s account? They'll be signed out immediately.`)) return;
+
+    const res = await fetch(`/api/admin/users/${user.id}`, { method: "DELETE" });
+    if (res.ok) {
+      load();
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    setRowError({ id: user.id, message: data.error ?? "Couldn't delete that account." });
   }
 
   return (
@@ -111,8 +132,8 @@ export function AdminUserManager() {
 
       <div className="overflow-hidden rounded-card border border-border bg-white shadow-card-lg">
         <div className="overflow-x-auto">
-          <div className="min-w-[640px]">
-            <div className="grid grid-cols-[1.2fr_1.4fr_0.8fr_1fr_0.8fr] gap-4 border-b border-border bg-offwhite px-6 py-3">
+          <div className="min-w-[760px]">
+            <div className="grid grid-cols-[1.2fr_1.4fr_0.8fr_1fr_1.4fr] gap-4 border-b border-border bg-offwhite px-6 py-3">
               {["Name", "Email", "Role", "Joined", "Action"].map((label) => (
                 <span key={label} className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-faint">
                   {label}
@@ -125,7 +146,7 @@ export function AdminUserManager() {
             {users.map((u) => (
               <div
                 key={u.id}
-                className="grid grid-cols-[1.2fr_1.4fr_0.8fr_1fr_0.8fr] items-center gap-4 border-b border-border px-6 py-4 last:border-b-0"
+                className="grid grid-cols-[1.2fr_1.4fr_0.8fr_1fr_1.4fr] items-center gap-4 border-b border-border px-6 py-4 last:border-b-0"
               >
                 <span className="truncate text-[15px] font-medium text-ink">{u.name}</span>
                 <span className="truncate text-sm text-ink-body">{u.email}</span>
@@ -137,12 +158,27 @@ export function AdminUserManager() {
                   {u.isAdmin ? "Admin" : "Employee"}
                 </span>
                 <span className="text-sm text-ink-body">{format(new Date(u.createdAt), "d MMM yyyy")}</span>
-                <button
-                  onClick={() => toggleAdmin(u)}
-                  className="w-fit rounded-full border-[1.5px] border-border-strong px-3 py-1 text-xs font-medium text-ink-body transition hover:border-indigo hover:text-indigo"
-                >
-                  {u.isAdmin ? "Remove admin" : "Make admin"}
-                </button>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => toggleAdmin(u)}
+                      className="w-fit rounded-full border-[1.5px] border-border-strong px-3 py-1 text-xs font-medium text-ink-body transition hover:border-indigo hover:text-indigo"
+                    >
+                      {u.isAdmin ? "Remove admin" : "Make admin"}
+                    </button>
+                    {u.id !== currentUserId && (
+                      <button
+                        onClick={() => deleteUser(u)}
+                        className="w-fit rounded-full border-[1.5px] border-border-strong px-3 py-1 text-xs font-medium text-deep-red transition hover:border-deep-red"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                  {rowError?.id === u.id && (
+                    <p className="mt-1.5 text-xs text-deep-red">{rowError.message}</p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
