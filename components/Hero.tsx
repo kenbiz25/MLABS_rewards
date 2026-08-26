@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
 // Fades from fully opaque on the left (behind the text) to fully
@@ -10,8 +11,14 @@ export function Hero() {
   return (
     <section className="relative flex min-h-screen flex-col justify-center overflow-hidden pb-20 pt-20 sm:pb-24">
       <div className="absolute inset-0" aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/hero.jpg" alt="" className="h-full w-full object-cover object-[50%_72%]" />
+        <Image
+          src="/hero.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[50%_72%]"
+        />
 
         {/* Mutes the illustration's saturation across the whole hero */}
         <div className="absolute inset-0 bg-white/55" />
