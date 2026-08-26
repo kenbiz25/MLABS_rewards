@@ -7,6 +7,7 @@ import { ProgressRail } from "./ProgressRail";
 import { ClosedNotice } from "./ClosedNotice";
 import { IdentityGate } from "./IdentityGate";
 import { CountrySelect } from "./CountrySelect";
+import { NomineeSelect } from "./NomineeSelect";
 import { TraitToggle } from "./TraitToggle";
 import { SuccessState } from "./SuccessState";
 
@@ -193,31 +194,17 @@ export function NominationFlow() {
 
   return (
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[320px_1fr]">
-      <ProgressRail completed={completed} total={totalQuestions} />
+      <ProgressRail completed={completed} total={totalQuestions} closesAt={cycle?.closesAt} />
 
       <form className="space-y-6" onSubmit={handleSubmit} noValidate>
         <div className="rounded-card border border-border bg-white p-9 shadow-card">
           <QuestionHeading number="01" title="Who are you nominating?" />
           <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <div>
-              <label htmlFor="nominee-name" className="mb-1.5 block text-sm font-medium text-ink">
-                Nominee's name
-              </label>
-              <input
-                id="nominee-name"
-                type="text"
-                className="min-h-[48px] w-full rounded-input border-[1.5px] border-border-strong px-4 text-[15px] text-ink outline-none transition focus:border-indigo"
-                value={form.nomineeName}
-                onChange={(e) => updateField("nomineeName", e.target.value)}
-                aria-invalid={!!errors.nomineeName}
-                aria-describedby={errors.nomineeName ? "nominee-name-error" : undefined}
-              />
-              {errors.nomineeName && (
-                <p id="nominee-name-error" className="mt-1.5 text-sm text-deep-red">
-                  {errors.nomineeName}
-                </p>
-              )}
-            </div>
+            <NomineeSelect
+              value={form.nomineeName}
+              onChange={(name) => updateField("nomineeName", name)}
+              error={errors.nomineeName}
+            />
             <CountrySelect
               value={form.countryCode}
               onChange={(code) => updateField("countryCode", code)}
