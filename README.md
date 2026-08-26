@@ -1,14 +1,14 @@
 # Core Traits & Recognition Awards
 
-An internal nomination and reporting tool for Medtronic LABS' Core Traits program — a
+An internal nomination and reporting tool for Medtronic LABS' Core Traits program - a
 lightweight, self-hosted alternative to Perceptyx for capturing peer nominations and
 giving HR/LT full visibility into submissions, trends, and results.
 
 ## Stack
 
 Next.js 14 (App Router) + TypeScript, Tailwind CSS, Prisma + SQLite, Zod, lucide-react.
-No chart library or component kit — dashboards and charts are hand-built with Tailwind.
-Sign-in is Microsoft (Entra ID) OAuth only — no local passwords, no SSO library; the
+No chart library or component kit - dashboards and charts are hand-built with Tailwind.
+Sign-in is Microsoft (Entra ID) OAuth only - no local passwords, no SSO library; the
 authorization code + PKCE flow is implemented directly against the Microsoft identity
 platform (see `lib/microsoftOAuth.ts` and `app/api/auth/microsoft/`).
 
@@ -25,21 +25,12 @@ npm run dev
 Visit `http://localhost:3000` to nominate, or `http://localhost:3000/login` to sign in
 with Microsoft.
 
-**Seeded accounts** (sign in with the matching Microsoft account for each email):
-
-- Admin: `catherine.muthoni@medtroniclabs.org` (or whatever you set `ADMIN_EMAIL` to)
-  — lands on the admin dashboard.
-- Employee (has nomination history to browse): `wanjiru.kamau@medtroniclabs.org`,
-  `david.mensah@medtroniclabs.org`, or `priya.nair@medtroniclabs.org` — lands on `/me`.
-
-If you don't control real Microsoft accounts for those addresses in development, sign
-in with any Microsoft account you do control, then promote it to admin from
-`/admin/team` (the first account ever created has no admin — see below).
-
-The seed also creates four financial-year cycles (FY27 Q1–Q4, the current one open)
-with ~37 realistic nominations across the 7 participating countries and all four Core
-Traits, plus a not-yet-activated FY28 Q1 cycle and a mix of published/unpublished
-cycle winners — enough to demo the dashboard, PDF export, and results tab convincingly.
+The seed script only upserts one account - `catherine.muthoni@medtroniclabs.org` (or
+whatever you set `ADMIN_EMAIL` to) as admin - and otherwise leaves the database clean
+(no demo cycles, nominations, or other accounts). Sign in with that Microsoft account
+to land on the admin dashboard, or sign in with any Microsoft account you control and
+promote it to admin from `/admin/team` (the first account ever created has no admin -
+see below). Everyone else is auto-provisioned as an employee on their first sign-in.
 
 ## Microsoft sign-in setup
 
@@ -55,17 +46,17 @@ AD) to authenticate against:
    production URL's equivalent (e.g. `https://awards.medtroniclabs.org/api/auth/microsoft/callback`).
 4. After creating it, copy the **Application (client) ID** into `AZURE_AD_CLIENT_ID`.
 5. Go to **Certificates & secrets → New client secret**, create one, and copy its
-   **value** (not the secret ID) into `AZURE_AD_CLIENT_SECRET` immediately — it's only
+   **value** (not the secret ID) into `AZURE_AD_CLIENT_SECRET` immediately - it's only
    shown once.
 6. Under **API permissions**, confirm `User.Read` (Microsoft Graph, delegated) is
-   present — it's added by default and is all this app needs.
+   present - it's added by default and is all this app needs.
 7. To restrict sign-in to one organization's tenant instead of any Microsoft account,
    set `AZURE_AD_TENANT_ID` to that tenant's ID (found on the app registration's
    **Overview** page) instead of the default `"common"`.
 
 ## Accounts and access
 
-There's one unified login (`/login`) for everyone — no separate admin sign-in page,
+There's one unified login (`/login`) for everyone - no separate admin sign-in page,
 and no local password to manage:
 
 - **Everyone signs in with Microsoft**. A user's account is auto-provisioned on their
@@ -74,10 +65,16 @@ and no local password to manage:
   any cycle an admin has published.
 - **Admins** are either seeded (`ADMIN_EMAIL` in `.env`, upserted by `npm run
   db:seed`) or promoted from an existing account by another admin, from
-  `/admin/team` — which can also pre-provision an email as admin before that
+  `/admin/team` - which can also pre-provision an email as admin before that
   person's first sign-in. Signing in as an admin lands on the admin dashboard, which
-  also has a "View as employee" link back to `/me` — the same account can nominate
+  also has a "View as employee" link back to `/me` - the same account can nominate
   and browse its own history like anyone else.
+- **Removing access** (e.g. someone leaves the organization): an admin deletes the
+  account from `/admin/team`, which signs it out everywhere immediately. Their past
+  nominations aren't affected (they're linked by email, not the account), and if they
+  ever sign in with Microsoft again a fresh non-admin account is auto-provisioned, same
+  as any first sign-in. An admin can't delete their own account or drop the last
+  remaining admin.
 - **Nominating without an account** still works: the public form falls back to a
   lightweight one-time name + work-email gate if there's no session. Signing in isn't
   required to submit a nomination, just to see your history afterward.
@@ -85,28 +82,35 @@ and no local password to manage:
 ## How nominations work
 
 - **Participating countries**: Kenya, Ghana, Rwanda, Sierra Leone, Bangladesh, Bhutan,
-  and the United States — see `PARTICIPATING_COUNTRIES` in `lib/countries.ts`. The
+  and the United States - see `PARTICIPATING_COUNTRIES` in `lib/countries.ts`. The
   nomination form and the admin country filter are both scoped to this list.
 - **Nominator identity**: name + work email, either from an active session or the
   one-time gate. It's always visible to HR in the dashboard and CSV export, but never
   shown anywhere a nominee could see it.
+- **Nominee name** is a searchable dropdown (`components/nomination/NomineeSelect.tsx`,
+  backed by the public `/api/users/nominatable` endpoint) listing everyone who's ever
+  signed in, to cut down on typos - but free text is still accepted for colleagues who
+  haven't signed in yet. Nominating the same person more than once (by different
+  nominators) is expected and not blocked by the dropdown.
 - **All fields are required** to submit, including at least one Core Trait.
-- **Cycles**: named by financial year and quarter (e.g. "FY27 Q1" — see
+- A live **countdown** (`components/nomination/CountdownTimer.tsx`) shows time
+  remaining in the open window on the identity screen and throughout the form.
+- **Cycles**: named by financial year and quarter (e.g. "FY27 Q1" - see
   `lib/fiscalYear.ts` for how the next label is suggested). HR schedules a cycle from
   `/admin/cycles` by picking a start date and a duration; the window automatically
-  opens at 12:01 a.m. in Bangladesh (the farthest-ahead participating country) and
-  closes at 11:59 p.m. in Sierra Leone (the farthest-behind) on the last day — see
-  `lib/schedule.ts`. That's fully automatic once a cycle is activated: no one has to
-  be online at the exact open/close instant. Several cycles can be scheduled, live, or
-  closed at once — activating, closing, or editing one never touches another.
+  opens at 00:00 UTC on the start date and closes at 00:00 WAT (UTC+1) on the day
+  after the last day - see `lib/schedule.ts`. That's fully automatic once a cycle is
+  activated: no one has to be online at the exact open/close instant. Several cycles
+  can be scheduled, live, or
+  closed at once - activating, closing, or editing one never touches another.
   Once a window's closing instant passes, the public form stops accepting submissions
-  for it — the shared link is effectively inaccessible until the next cycle opens.
+  for it - the shared link is effectively inaccessible until the next cycle opens.
 - **Duplicate prevention**: one nomination per nominator email per cycle, enforced by
   a database unique constraint and checked proactively before the form loads.
-  Multiple nominations *for the same nominee* are expected and encouraged — only one
+  Multiple nominations *for the same nominee* are expected and encouraged - only one
   nomination *per nominator* is restricted.
 - **Winners & results**: HR records winners per cycle from `/admin/cycles` (names
-  only — no photos) and controls exactly when they become visible with a
+  only - no photos) and controls exactly when they become visible with a
   "Publish results" toggle, independent of whether the cycle itself is closed. Once
   published, winners show up in every employee's `/me` → Results tab and in the public
   `/api/winners` feed.
@@ -118,28 +122,34 @@ and no local password to manage:
 - Stats cards (total nominations, countries represented, Patients First count,
   Innovation count) scoped to the selected cycle.
 - A cycle-by-cycle volume trend chart.
-- A most-selected Core Trait breakdown (per cycle or cumulative — toggle via the cycle
+- A most-selected Core Trait breakdown (per cycle or cumulative - toggle via the cycle
   filter).
-- A **Recurring words** panel — not a raw word-frequency count. It matches against a
+- A **Recurring words** panel - not a raw word-frequency count. It matches against a
   curated set of Core Trait / organizational-value concepts (collaboration,
-  accountability, integrity, innovation, and so on — see `VALUE_TERMS` in
+  accountability, integrity, innovation, and so on - see `VALUE_TERMS` in
   `lib/words.ts`) and rolls variants up under one label, so it surfaces meaningful
   themes instead of incidental nouns, verbs, or dates from a specific anecdote.
 - A filterable, searchable table (cycle, country, trait, free-text search across
   nominee/nominator names) with a detail drawer showing the full moment/impact text.
-- **Export CSV** — respects the current filters.
-- **Export PDF** — opens a print-optimized summary (stats + charts, matching the
+- **Export CSV** - respects the current filters.
+- **Export PDF** - opens a print-optimized summary (stats + charts, matching the
   dashboard's first two rows) in a new tab; use the browser's "Print → Save as PDF" to
-  get an actual file. There's no PDF-generation dependency involved — see
+  get an actual file. There's no PDF-generation dependency involved - see
   `components/admin/SummaryPrintView.tsx`.
 
 ## Design notes
 
-- Countries and trait definitions are shared between client and server —
-  `lib/countries.ts` and `lib/traits.ts` — so validation, the form, and the dashboard
+- **Public GET route handlers that don't call `cookies()`/`headers()` need
+  `export const dynamic = "force-dynamic"`** - otherwise Next.js treats them as static
+  and caches the response at build time, so a DB change (e.g. opening a cycle,
+  publishing results) never shows up until the next deploy. `/api/cycles/current`,
+  `/api/winners`, and `/api/users/nominatable` all set this explicitly; keep doing so
+  for any new public GET route backed by live data.
+- Countries and trait definitions are shared between client and server -
+  `lib/countries.ts` and `lib/traits.ts` - so validation, the form, and the dashboard
   can never drift out of sync.
 - The Core Trait icons (`HeartPulse`, `Award`, `Handshake`, `Lightbulb`) and the
-  background's drifting icon texture are deliberately not the corporate logomark —
+  background's drifting icon texture are deliberately not the corporate logomark -
   they're meant to symbolize the traits themselves, kept intentionally light and
   simple rather than a heavy brand treatment.
 
@@ -164,7 +174,7 @@ clauses if you want the same case-insensitive behavior.
 ## Data portability
 
 All data lives in a normal relational schema (`User`, `Cycle`, `CycleWinner`,
-`Nomination`, `Session` — see `prisma/schema.prisma`) and is always exportable as CSV
+`Nomination`, `Session` - see `prisma/schema.prisma`) and is always exportable as CSV
 via the dashboard, so it can be migrated back into Perceptyx or any other tool later
 without lock-in.
 
@@ -177,14 +187,14 @@ without lock-in.
    (`DATABASE_URL`, `ADMIN_EMAIL`, `SESSION_SECRET`, `APP_URL`, `AZURE_AD_CLIENT_ID`,
    `AZURE_AD_CLIENT_SECRET`, `AZURE_AD_TENANT_ID`).
 4. Add the production redirect URI (`https://<your-domain>/api/auth/microsoft/callback`)
-   to the app registration in Entra ID — see "Microsoft sign-in setup" above.
+   to the app registration in Entra ID - see "Microsoft sign-in setup" above.
 5. Add `npx prisma generate` to the build command if it isn't picked up automatically,
    and run `npx prisma db push` once against the production database before first use.
 
 ## Known limitations
 
 - Rate limiting (nomination submissions, admin actions) is in-memory and
-  per-instance — fine for a single-server deployment, but swap for a shared store
+  per-instance - fine for a single-server deployment, but swap for a shared store
   (e.g. Redis) if you scale to multiple instances.
 
 ## Project structure
