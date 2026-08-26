@@ -8,6 +8,8 @@ import {
   microsoftRedirectUri,
 } from "@/lib/microsoftOAuth";
 
+const ALLOWED_EMAIL_DOMAINS = ["medtroniclabs.org", "medtronic.com"];
+
 function signInFailed(req: NextRequest, message: string): NextResponse {
   const res = NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(message)}`, req.url));
   res.cookies.delete(OAUTH_STATE_COOKIE);
@@ -20,14 +22,15 @@ export async function GET(req: NextRequest) {
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const providerError = searchParams.get("error_description") || searchParams.get("error");
-
   if (providerError) {
+    console.error("Microsoft OAuth provider error:", providerError);
     return signInFailed(req, "Microsoft sign-in was cancelled or failed.");
   }
 
   const expectedState = req.cookies.get(OAUTH_STATE_COOKIE)?.value;
   const verifier = req.cookies.get(OAUTH_VERIFIER_COOKIE)?.value;
   if (!code || !state || !verifier || state !== expectedState) {
+    console.error("OAuth state/verifier mismatch", { hasCode: !!code, hasState: !!state, hasVerifier: !!verifier, stateMatch: state === expectedState });
     return signInFailed(req, "Sign-in couldn't be verified - please try again.");
   }
 
@@ -43,24 +46,40 @@ export async function GET(req: NextRequest) {
       code_verifier: verifier,
     }),
   });
-  if (!tokenRes.ok) return signInFailed(req, "Microsoft sign-in failed - please try again.");
+  if (!tokenRes.ok) {
+    const body = await tokenRes.text();
+    console.error("Microsoft token exchange failed:", tokenRes.status, body);
+    return signInFailed(req, "Microsoft sign-in failed - please try again.");
+  }
   const tokens: { access_token?: string } = await tokenRes.json();
-  if (!tokens.access_token) return signInFailed(req, "Microsoft sign-in failed - please try again.");
+  if (!tokens.access_token) {
+    console.error("No access_token in token response:", tokens);
+    return signInFailed(req, "Microsoft sign-in failed - please try again.");
+  }
 
   const profileRes = await fetch("https://graph.microsoft.com/v1.0/me", {
     headers: { Authorization: `Bearer ${tokens.access_token}` },
   });
-  if (!profileRes.ok) return signInFailed(req, "Couldn't read your Microsoft profile - please try again.");
+  if (!profileRes.ok) {
+    const body = await profileRes.text();
+    console.error("Microsoft Graph profile fetch failed:", profileRes.status, body);
+    return signInFailed(req, "Couldn't read your Microsoft profile - please try again.");
+  }
   const profile: { mail?: string; userPrincipalName?: string; displayName?: string } = await profileRes.json();
-
   const email = (profile.mail || profile.userPrincipalName || "").trim().toLowerCase();
-  if (!email) return signInFailed(req, "Your Microsoft account has no email on file.");
+  if (!email) {
+    console.error("No email on Microsoft profile:", profile);
+    return signInFailed(req, "Your Microsoft account has no email on file.");
+  }
+
+  const emailDomain = email.split("@")[1] ?? "";
+  if (!ALLOWED_EMAIL_DOMAINS.includes(emailDomain)) {
+    console.error("Rejected sign-in from disallowed domain:", email);
+    return signInFailed(req, "This app is only available to Medtronic LABS and Medtronic accounts.");
+  }
+
   const name = profile.displayName?.trim() || email;
 
-  // First sign-in auto-provisions the account (like the old self-service
-  // signup did) as a non-admin. Admin access is granted separately via
-  // /admin/team, or pre-provisioned there before the person's first login -
-  // either way isAdmin is left untouched on repeat sign-ins.
   const user = await prisma.user.upsert({
     where: { email },
     update: { name },
