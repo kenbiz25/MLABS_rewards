@@ -3,8 +3,14 @@ import { prisma } from "@/lib/db";
 import type { TraitKey } from "@/lib/traits";
 
 // Public: winners are shown to everyone once an admin has explicitly
-// published results for a cycle — not merely once it closes. Draft winner
+// published results for a cycle - not merely once it closes. Draft winner
 // lists an admin is still curating stay invisible until published.
+//
+// No cookies()/headers() call here, so without this Next.js treats it as a
+// static route and caches the response at build time - publishing results
+// would never actually show up until the next deploy.
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const cycles = await prisma.cycle.findMany({
     where: { resultsPublishedAt: { not: null } },

@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { getOpenCycle, getNextCycle } from "@/lib/cycles";
 
+// No cookies()/headers() call here, so without this Next.js treats it as a
+// static route and caches the response at build time - an admin opening or
+// closing a cycle would never be reflected until the next deploy.
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const open = await getOpenCycle();
 
