@@ -202,11 +202,9 @@ export function CycleManager() {
         <h1 className="mt-2 text-4xl font-medium text-ink">Nomination cycles</h1>
         <p className="mt-2 max-w-2xl text-[15px] text-ink-body">
           Cycles are named by financial year and quarter. Pick a start date and a
-          window automatically opens at 12:01 a.m. in Bangladesh (the farthest-ahead
-          participating country) and closes at 11:59 p.m. in Sierra Leone (the
-          farthest-behind) on the last day - so every participating country gets the
-          full window, with no manual clock-watching required. Several cycles can be
-          scheduled or live at the same time.
+          window automatically opens at 00:00 UTC on that date and closes at 00:00
+          WAT on the day after the last day - no manual clock-watching required.
+          Several cycles can be scheduled or live at the same time.
         </p>
       </div>
 

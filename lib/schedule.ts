@@ -1,14 +1,13 @@
 // Global nomination windows are defined by a calendar start date and a
-// duration. To guarantee every participating country gets the full nominal
-// window, the window opens at 12:01 a.m. local time in Bangladesh (UTC+6,
-// the farthest-ahead participating country) and closes at 11:59 p.m. local
-// time in Sierra Leone (UTC+0, the farthest-behind participating country).
-// Neither country observes daylight saving, so these offsets are constant.
+// duration, anchored to two fixed clock times rather than any specific
+// country's local time: the window opens at 00:00 UTC on the start date,
+// and closes at 00:00 WAT (UTC+1) on the day after the last day - i.e. the
+// instant WAT clocks tick over into the next day. WAT doesn't observe
+// daylight saving, so this offset is constant.
 
 export const DEFAULT_WINDOW_DAYS = 16;
 
-const BANGLADESH_OFFSET_MINUTES = 6 * 60;
-const SIERRA_LEONE_OFFSET_MINUTES = 0;
+const WAT_OFFSET_MINUTES = 60; // UTC+1
 
 interface CalendarDate {
   year: number;
@@ -32,19 +31,17 @@ export function computeGlobalWindow(
   durationDays: number = DEFAULT_WINDOW_DAYS
 ): { opensAt: Date; closesAt: Date } {
   const start = parseCalendarDate(startDate);
-  const end = addDays(start, durationDays - 1);
+  const closeDay = addDays(start, durationDays);
 
-  const opensAt = new Date(
-    Date.UTC(start.year, start.month - 1, start.day, 0, 1) - BANGLADESH_OFFSET_MINUTES * 60_000
-  );
+  const opensAt = new Date(Date.UTC(start.year, start.month - 1, start.day, 0, 0));
   const closesAt = new Date(
-    Date.UTC(end.year, end.month - 1, end.day, 23, 59) - SIERRA_LEONE_OFFSET_MINUTES * 60_000
+    Date.UTC(closeDay.year, closeDay.month - 1, closeDay.day, 0, 0) - WAT_OFFSET_MINUTES * 60_000
   );
 
   return { opensAt, closesAt };
 }
 
-// Default "start date" for a new cycle — today, in plain YYYY-MM-DD form.
+// Default "start date" for a new cycle - today, in plain YYYY-MM-DD form.
 export function todayDateString(): string {
   const now = new Date();
   const y = now.getUTCFullYear();
