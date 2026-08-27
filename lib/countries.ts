@@ -210,7 +210,7 @@ export function countryNameFor(code: string): string {
 // Countries currently participating in the Core Traits nomination program.
 // The public nomination form and the admin country filter are both scoped
 // to this list - narrow it here to change either.
-export const PARTICIPATING_COUNTRY_CODES = ["KE", "GH", "RW", "SL", "BD", "BT", "US"] as const;
+export const PARTICIPATING_COUNTRY_CODES = ["KE", "GH", "RW", "SL", "BD", "BT", "US", "IN"] as const;
 
 export const PARTICIPATING_COUNTRIES: Country[] = COUNTRIES.filter((c) =>
   (PARTICIPATING_COUNTRY_CODES as readonly string[]).includes(c.code)
