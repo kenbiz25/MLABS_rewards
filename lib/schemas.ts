@@ -98,7 +98,14 @@ export type CycleUpdateInput = z.infer<typeof cycleUpdateSchema>;
 
 export const winnerSchema = z.object({
   nomineeName: z.string().trim().min(2).max(120),
-  trait: z.enum(TRAIT_KEYS, { errorMap: () => ({ message: "Select a Core Trait category." }) }),
+  traits: z
+    .array(z.enum(TRAIT_KEYS))
+    .min(1, "Select at least one Core Trait."),
+  justification: z
+    .string()
+    .trim()
+    .min(20, "Say a bit more - at least 20 characters.")
+    .max(1000, "Keep it under 1000 characters."),
 });
 
 export type WinnerInput = z.infer<typeof winnerSchema>;

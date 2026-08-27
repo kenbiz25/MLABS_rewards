@@ -24,14 +24,14 @@ model Cycle {
 }
 
 model CycleWinner {
-  id          String   @id @default(cuid())
-  cycleId     String
-  cycle       Cycle    @relation(fields: [cycleId], references: [id], onDelete: Cascade)
-  nomineeName String
-  trait       String // one of the four Core Trait keys - see lib/traits.ts
-  createdAt   DateTime @default(now())
+  id            String   @id @default(cuid())
+  cycleId       String
+  cycle         Cycle    @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  nomineeName   String
+  traits        String // JSON array of Core Trait keys - see lib/traits.ts
+  justification String // why this person won - shown to HR, not published publicly
+  createdAt     DateTime @default(now())
 
-  @@unique([cycleId, trait])
   @@index([cycleId])
 }
 

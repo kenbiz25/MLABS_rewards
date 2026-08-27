@@ -5,7 +5,7 @@ export function TraitCards() {
     <section className="bg-offwhite py-20">
       <div className="mx-auto max-w-page px-6 sm:px-10">
         <h2 className="text-3xl font-medium text-ink sm:text-[36px]">
-          The four Core Traits
+          The Four Core Traits
         </h2>
         <p className="mt-2 text-base text-ink-faint">
           A nomination can reflect more than one trait.

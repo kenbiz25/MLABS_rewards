@@ -1,12 +1,9 @@
-import { CountdownTimer } from "./CountdownTimer";
-
 interface ProgressRailProps {
   completed: number;
   total: number;
-  closesAt?: string | null;
 }
 
-export function ProgressRail({ completed, total, closesAt }: ProgressRailProps) {
+export function ProgressRail({ completed, total }: ProgressRailProps) {
   const pct = Math.round((completed / total) * 100);
 
   return (
@@ -14,11 +11,6 @@ export function ProgressRail({ completed, total, closesAt }: ProgressRailProps) 
       <p className="text-xs font-medium uppercase tracking-[0.1em] text-ink-faint">
         Your nomination
       </p>
-      {closesAt && (
-        <p className="mt-1 text-sm font-medium text-indigo">
-          <CountdownTimer closesAt={closesAt} />
-        </p>
-      )}
 
       <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-border">
         <div

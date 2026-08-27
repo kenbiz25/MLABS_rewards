@@ -93,13 +93,13 @@ and no local password to manage:
   haven't signed in yet. Nominating the same person more than once (by different
   nominators) is expected and not blocked by the dropdown.
 - **All fields are required** to submit, including at least one Core Trait.
-- A live **countdown** (`components/nomination/CountdownTimer.tsx`) shows time
-  remaining in the open window on the identity screen and throughout the form.
 - **Cycles**: named by financial year and quarter (e.g. "FY27 Q1" - see
   `lib/fiscalYear.ts` for how the next label is suggested). HR schedules a cycle from
   `/admin/cycles` by picking a start date and a duration; the window automatically
-  opens at 00:00 UTC on the start date and closes at 00:00 WAT (UTC+1) on the day
-  after the last day - see `lib/schedule.ts`. That's fully automatic once a cycle is
+  opens at 00:00 UTC on the start date and closes at 00:00 UTC on the day
+  after the last day - see `lib/schedule.ts`. That's the same instant for everyone;
+  each admin/employee's browser simply displays it converted to their own local
+  timezone. That's fully automatic once a cycle is
   activated: no one has to be online at the exact open/close instant. Several cycles
   can be scheduled, live, or
   closed at once - activating, closing, or editing one never touches another.
@@ -109,11 +109,12 @@ and no local password to manage:
   a database unique constraint and checked proactively before the form loads.
   Multiple nominations *for the same nominee* are expected and encouraged - only one
   nomination *per nominator* is restricted.
-- **Winners & results**: HR records winners per cycle from `/admin/cycles` (names
-  only - no photos) and controls exactly when they become visible with a
-  "Publish results" toggle, independent of whether the cycle itself is closed. Once
-  published, winners show up in every employee's `/me` → Results tab and in the public
-  `/api/winners` feed.
+- **Winners & results**: HR records winners per cycle from `/admin/cycles` - each
+  winner gets a name, one or more Core Traits, and a justification for why they won -
+  and controls exactly when they become visible with a "Publish results" toggle,
+  independent of whether the cycle itself is closed. Once published, winners (name +
+  traits) show up in every employee's `/me` → Results tab and in the public
+  `/api/winners` feed; the justification stays internal to HR.
 
 ## Reporting
 

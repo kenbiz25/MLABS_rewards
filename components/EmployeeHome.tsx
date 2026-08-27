@@ -18,7 +18,7 @@ interface MyNomination {
 interface WinnerCycle {
   cycleId: string;
   cycleName: string;
-  winners: { nomineeName: string; trait: TraitKey }[];
+  winners: { nomineeName: string; traits: TraitKey[] }[];
 }
 
 export function EmployeeHome({ name, isAdmin }: { name: string; isAdmin: boolean }) {
@@ -137,17 +137,20 @@ export function EmployeeHome({ name, isAdmin }: { name: string; isAdmin: boolean
               <p className="text-sm font-medium uppercase tracking-[0.08em] text-ink-faint">{c.cycleName}</p>
               <p className="mt-1 text-[15px] text-ink-body">Congratulations to this cycle's honorees:</p>
               <div className="mt-3 space-y-2">
-                {c.winners.map((w) => (
-                  <div key={w.trait} className="flex flex-wrap items-center gap-2">
-                    <span
-                      className="w-56 shrink-0 rounded-full px-3 py-1.5 text-xs font-medium"
-                      style={{ backgroundColor: TRAIT_MAP[w.trait].tint, color: TRAIT_MAP[w.trait].accent }}
-                    >
-                      {TRAIT_MAP[w.trait].label}
-                    </span>
+                {c.winners.map((w, i) => (
+                  <div key={`${w.nomineeName}-${i}`} className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-pale-indigo px-3 py-1.5 text-sm font-medium text-indigo">
                       {w.nomineeName}
                     </span>
+                    {w.traits.map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-full px-2.5 py-1 text-xs font-medium"
+                        style={{ backgroundColor: TRAIT_MAP[t].tint, color: TRAIT_MAP[t].accent }}
+                      >
+                        {TRAIT_MAP[t].label}
+                      </span>
+                    ))}
                   </div>
                 ))}
               </div>

@@ -202,9 +202,11 @@ export function CycleManager() {
         <h1 className="mt-2 text-4xl font-medium text-ink">Nomination cycles</h1>
         <p className="mt-2 max-w-2xl text-[15px] text-ink-body">
           Cycles are named by financial year and quarter. Pick a start date and a
-          window automatically opens at 00:00 UTC on that date and closes at 00:00
-          WAT on the day after the last day - no manual clock-watching required.
-          Several cycles can be scheduled or live at the same time.
+          window automatically opens at midnight UTC on that date and closes at
+          midnight UTC the day after the last day - no manual clock-watching
+          required. Times below are shown in your own local timezone. Several
+          cycles can be scheduled or live at the same time, and you can force-close
+          an open cycle early at any time.
         </p>
       </div>
 
@@ -233,7 +235,7 @@ export function CycleManager() {
         <div className="overflow-x-auto">
           <div className="min-w-[960px]">
             <div className="grid grid-cols-[1.4fr_1fr_1.1fr_1.1fr_1fr_0.8fr_1.6fr] gap-4 border-b border-border bg-offwhite px-6 py-3">
-              {["Cycle", "Status", "Opens (UTC)", "Closes (UTC)", "Live state", "Nominations", "Actions"].map(
+              {["Cycle", "Status", "Opens (your time)", "Closes (your time)", "Live state", "Nominations", "Actions"].map(
                 (label) => (
                   <span key={label} className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-faint">
                     {label}

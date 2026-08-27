@@ -1,4 +1,4 @@
-import type { Nomination } from "@prisma/client";
+import type { Nomination, CycleWinner } from "@prisma/client";
 import type { TraitKey } from "./traits";
 
 export interface SerializedNomination {
@@ -28,5 +28,25 @@ export function serializeNomination(n: Nomination): SerializedNomination {
     nominatorName: n.nominatorName,
     nominatorEmail: n.nominatorEmail,
     createdAt: n.createdAt.toISOString(),
+  };
+}
+
+export interface SerializedWinner {
+  id: string;
+  cycleId: string;
+  nomineeName: string;
+  traits: TraitKey[];
+  justification: string;
+  createdAt: string;
+}
+
+export function serializeWinner(w: CycleWinner): SerializedWinner {
+  return {
+    id: w.id,
+    cycleId: w.cycleId,
+    nomineeName: w.nomineeName,
+    traits: JSON.parse(w.traits) as TraitKey[],
+    justification: w.justification,
+    createdAt: w.createdAt.toISOString(),
   };
 }

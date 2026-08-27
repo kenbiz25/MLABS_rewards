@@ -1,13 +1,11 @@
 // Global nomination windows are defined by a calendar start date and a
-// duration, anchored to two fixed clock times rather than any specific
-// country's local time: the window opens at 00:00 UTC on the start date,
-// and closes at 00:00 WAT (UTC+1) on the day after the last day - i.e. the
-// instant WAT clocks tick over into the next day. WAT doesn't observe
-// daylight saving, so this offset is constant.
+// duration, anchored to plain UTC midnight: the window opens at 00:00 UTC
+// on the start date, and closes at 00:00 UTC on the day after the last day.
+// This is a single fixed instant shared by everyone - each admin/employee's
+// browser simply displays that instant converted to their own local
+// timezone, so the times they see already read correctly wherever they are.
 
 export const DEFAULT_WINDOW_DAYS = 16;
-
-const WAT_OFFSET_MINUTES = 60; // UTC+1
 
 interface CalendarDate {
   year: number;
@@ -34,9 +32,7 @@ export function computeGlobalWindow(
   const closeDay = addDays(start, durationDays);
 
   const opensAt = new Date(Date.UTC(start.year, start.month - 1, start.day, 0, 0));
-  const closesAt = new Date(
-    Date.UTC(closeDay.year, closeDay.month - 1, closeDay.day, 0, 0) - WAT_OFFSET_MINUTES * 60_000
-  );
+  const closesAt = new Date(Date.UTC(closeDay.year, closeDay.month - 1, closeDay.day, 0, 0));
 
   return { opensAt, closesAt };
 }

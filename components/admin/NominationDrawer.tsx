@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { X, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { TRAIT_MAP, type TraitKey } from "@/lib/traits";
 import type { SerializedNomination } from "@/lib/serialize";
@@ -9,11 +9,30 @@ import type { SerializedNomination } from "@/lib/serialize";
 interface NominationDrawerProps {
   nomination: SerializedNomination | null;
   onClose: () => void;
+  onDeleted?: (id: string) => void;
 }
 
-export function NominationDrawer({ nomination, onClose }: NominationDrawerProps) {
+export function NominationDrawer({ nomination, onClose, onDeleted }: NominationDrawerProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    setConfirmingDelete(false);
+  }, [nomination]);
+
+  async function handleDelete() {
+    if (!nomination) return;
+    setDeleting(true);
+    try {
+      await fetch(`/api/admin/nominations/${nomination.id}`, { method: "DELETE" });
+      onDeleted?.(nomination.id);
+      onClose();
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     if (!nomination) return;
@@ -80,6 +99,35 @@ export function NominationDrawer({ nomination, onClose }: NominationDrawerProps)
           >
             <X size={20} strokeWidth={1.75} />
           </button>
+        </div>
+
+        <div className="mt-5 px-8">
+          {confirmingDelete ? (
+            <div className="flex flex-wrap items-center gap-3 rounded-xl bg-[#FDEDED] px-4 py-3 text-sm text-deep-red">
+              <span>Delete this nomination? This can't be undone.</span>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="rounded-full bg-deep-red px-3 py-1 text-xs font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+              >
+                {deleting ? "Deleting…" : "Confirm delete"}
+              </button>
+              <button
+                onClick={() => setConfirmingDelete(false)}
+                className="rounded-full border-[1.5px] border-deep-red/30 px-3 py-1 text-xs font-medium text-deep-red"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmingDelete(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-border-strong px-3.5 py-1.5 text-xs font-medium text-ink-body transition hover:border-deep-red hover:text-deep-red"
+            >
+              <Trash2 size={13} strokeWidth={1.75} />
+              Delete nomination
+            </button>
+          )}
         </div>
 
         <div className="mt-5 flex flex-wrap gap-1.5 px-8">

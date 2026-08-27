@@ -194,7 +194,7 @@ export function NominationFlow() {
 
   return (
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[320px_1fr]">
-      <ProgressRail completed={completed} total={totalQuestions} closesAt={cycle?.closesAt} />
+      <ProgressRail completed={completed} total={totalQuestions} />
 
       <form className="space-y-6" onSubmit={handleSubmit} noValidate>
         <div className="rounded-card border border-border bg-white p-9 shadow-card">

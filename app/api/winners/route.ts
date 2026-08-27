@@ -24,7 +24,10 @@ export async function GET() {
       cycleName: c.name,
       closesAt: c.closesAt,
       resultsPublishedAt: c.resultsPublishedAt,
-      winners: c.winners.map((w) => ({ nomineeName: w.nomineeName, trait: w.trait as TraitKey })),
+      winners: c.winners.map((w) => ({
+        nomineeName: w.nomineeName,
+        traits: JSON.parse(w.traits) as TraitKey[],
+      })),
     })),
   });
 }

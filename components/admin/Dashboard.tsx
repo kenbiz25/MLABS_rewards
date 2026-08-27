@@ -51,6 +51,7 @@ export function Dashboard() {
   const [wordFrequency, setWordFrequency] = useState<{ word: string; count: number }[]>([]);
   const [selected, setSelected] = useState<SerializedNomination | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   function buildQuery(): string {
     const params = new URLSearchParams();
@@ -76,7 +77,7 @@ export function Dashboard() {
         }
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cycleId, trait, country, q]);
+  }, [cycleId, trait, country, q, refreshKey]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -88,7 +89,7 @@ export function Dashboard() {
         setTraitBreakdown(data.traitBreakdown);
         setWordFrequency(data.wordFrequency);
       });
-  }, [cycleId]);
+  }, [cycleId, refreshKey]);
 
   const scopeLabel =
     cycleId === "all"
@@ -139,7 +140,11 @@ export function Dashboard() {
 
       <NominationsTable nominations={nominations} selectedId={selected?.id ?? null} onSelect={setSelected} />
 
-      <NominationDrawer nomination={selected} onClose={() => setSelected(null)} />
+      <NominationDrawer
+        nomination={selected}
+        onClose={() => setSelected(null)}
+        onDeleted={() => setRefreshKey((k) => k + 1)}
+      />
     </div>
   );
 }
