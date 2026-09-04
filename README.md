@@ -25,7 +25,7 @@ npm run dev
 Visit `http://localhost:3000` to nominate, or `http://localhost:3000/login` to sign in
 with Microsoft.
 
-The seed script only upserts one account - `catherine.muthoni@medtroniclabs.org` (or
+The seed script only upserts one account - `abc@mdt.org` (or
 whatever you set `ADMIN_EMAIL` to) as admin - and otherwise leaves the database clean
 (no demo cycles, nominations, or other accounts). Sign in with that Microsoft account
 to land on the admin dashboard, or sign in with any Microsoft account you control and
@@ -63,7 +63,7 @@ and no local password to manage:
   first sign-in (matched by the email Microsoft returns) and, once signed in, lands
   on `/me`: their own nomination history, plus a **Results** tab showing winners for
   any cycle an admin has published.
-- **Admins** are either seeded (`ADMIN_EMAIL` in `.env`, upserted by `npm run
+  Admins are seeded 
   db:seed`) or promoted from an existing account by another admin, from
   `/admin/team` - which can also pre-provision an email as admin before that
   person's first sign-in. Signing in as an admin lands on the admin dashboard, which
